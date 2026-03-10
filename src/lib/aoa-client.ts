@@ -1,6 +1,6 @@
 import { buildDigestHeader } from './digest-auth.js'
 
-// ---- Types matching real AOA v1.6 API structure ----------------------------
+// ---- Types -----------------------------------------------------------------
 
 export interface AoaDevice {
   id: number
@@ -17,6 +17,8 @@ export interface AoaFilter {
 export interface AoaTrigger {
   type: string
   vertices?: [number, number][]
+  alarmDirection?: string
+  countingDirection?: string
   [key: string]: unknown
 }
 
@@ -42,21 +44,68 @@ export interface AoaConfiguration {
   metadataOverlay?: unknown[]
 }
 
-// Scenario types supported by AOA on ARTPEC-9 / v1.6
-export const SCENARIO_TYPES = ['motion'] as const
+export interface CountData {
+  resetTime?: string
+  timeStamp?: string
+  total: number
+  totalCar?: number
+  totalTruck?: number
+  totalBus?: number
+  totalBike?: number
+  totalHuman?: number
+  totalOtherVehicle?: number
+  reason?: string
+}
+
+export interface OccupancyData {
+  timeStamp?: string
+  total: number
+  car?: number
+  truck?: number
+  bus?: number
+  bike?: number
+  human?: number
+  otherVehicle?: number
+}
+
+// ---- Supported scenario types ----------------------------------------------
+
+export const SCENARIO_TYPES = [
+  'motion',
+  'fence',
+  'crosslinecounting',
+  'occupancyInArea',
+  'tailgating',
+  'fallDetection',
+] as const
+
 export type ScenarioType = typeof SCENARIO_TYPES[number]
 
-// Default full-frame trigger zone
-const FULL_FRAME_VERTICES: [number, number][] = [
-  [-0.97, -0.97], [-0.97, 0.97], [0.97, 0.97], [0.97, -0.97]
-]
+// Valid object classifications
+export const OBJECT_CLASSES = ['human', 'vehicle', 'missing_hardhat'] as const
 
-// Default filters for a new scenario
-const DEFAULT_FILTERS: AoaFilter[] = [
-  { type: 'distanceSwayingObject', distance: 5 },
-  { type: 'timeShortLivedLimit', time: 1 },
-  { type: 'sizePercentage', height: 3, width: 3 },
-]
+// Default triggers per scenario type
+function defaultTrigger(type: string): AoaTrigger {
+  if (type === 'fence' || type === 'tailgating') {
+    return { type: 'fence', alarmDirection: 'leftToRight', vertices: [[0, -0.7], [0, 0.7]] }
+  }
+  if (type === 'crosslinecounting') {
+    return { type: 'countingLine', countingDirection: 'leftToRight', vertices: [[0, -0.7], [0, 0.7]] }
+  }
+  return { type: 'includeArea', vertices: [[-0.97, -0.97], [-0.97, 0.97], [0.97, 0.97], [0.97, -0.97]] }
+}
+
+// Filters valid per scenario type
+function defaultFilters(type: string): AoaFilter[] {
+  if (['motion', 'occupancyInArea'].includes(type)) {
+    return [
+      { type: 'distanceSwayingObject', distance: 5 },
+      { type: 'timeShortLivedLimit', time: 1 },
+      { type: 'sizePercentage', height: 3, width: 3 },
+    ]
+  }
+  return [] // fence, crosslinecounting, tailgating, fallDetection
+}
 
 // ---- Client ----------------------------------------------------------------
 
@@ -98,15 +147,15 @@ export class AoaClient {
     return json.data
   }
 
+  // ---- Config reads -------------------------------------------------------
+
   async getConfiguration(): Promise<AoaConfiguration> {
     return (await this.call('getConfiguration')) as AoaConfiguration
   }
 
-  async setConfiguration(config: AoaConfiguration): Promise<void> {
-    await this.call('setConfiguration', config as unknown as Record<string, unknown>)
+  async getCapabilities(): Promise<Record<string, unknown>> {
+    return (await this.call('getConfigurationCapabilities')) as Record<string, unknown>
   }
-
-  // ---- Convenience helpers ------------------------------------------------
 
   async getScenarios(): Promise<AoaScenario[]> {
     return (await this.getConfiguration()).scenarios ?? []
@@ -114,6 +163,12 @@ export class AoaClient {
 
   async getDevices(): Promise<AoaDevice[]> {
     return (await this.getConfiguration()).devices ?? []
+  }
+
+  // ---- Config writes -------------------------------------------------------
+
+  async setConfiguration(config: AoaConfiguration): Promise<void> {
+    await this.call('setConfiguration', config as unknown as Record<string, unknown>)
   }
 
   async addScenario(
@@ -132,16 +187,15 @@ export class AoaClient {
       return { type: o }
     })
 
-    const triggerType = 'includeArea'
     const scenario: AoaScenario = {
       id: nextId,
       name,
       type,
       devices: [{ id: deviceId }],
-      filters: DEFAULT_FILTERS,
-      triggers: [{ type: triggerType, vertices: FULL_FRAME_VERTICES }],
+      filters: defaultFilters(type),
+      triggers: [defaultTrigger(type)],
       objectClassifications,
-      metadataOverlay: config.metadataOverlay?.[0] ? (config.metadataOverlay[0] as { id: number }).id : undefined,
+      metadataOverlay: (config.metadataOverlay?.[0] as { id?: number } | undefined)?.id,
     }
 
     config.scenarios.push(scenario)
@@ -159,9 +213,27 @@ export class AoaClient {
 
   async updateScenarioName(id: number, name: string): Promise<void> {
     const config = await this.getConfiguration()
-    const scenario = config.scenarios.find((s) => s.id === id)
-    if (!scenario) throw new Error(`Scenario ${id} not found`)
-    scenario.name = name
+    const s = config.scenarios.find((s) => s.id === id)
+    if (!s) throw new Error(`Scenario ${id} not found`)
+    s.name = name
     await this.setConfiguration(config)
+  }
+
+  // ---- Data & actions ------------------------------------------------------
+
+  async sendAlarmEvent(scenarioId: number): Promise<void> {
+    await this.call('sendAlarmEvent', { scenario: scenarioId })
+  }
+
+  async getAccumulatedCounts(scenarioId: number): Promise<CountData> {
+    return (await this.call('getAccumulatedCounts', { scenario: scenarioId })) as CountData
+  }
+
+  async getOccupancy(scenarioId: number): Promise<OccupancyData> {
+    return (await this.call('getOccupancy', { scenario: scenarioId })) as OccupancyData
+  }
+
+  async resetAccumulatedCounts(scenarioId: number): Promise<void> {
+    await this.call('resetAccumulatedCounts', { scenario: scenarioId })
   }
 }
