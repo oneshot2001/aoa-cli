@@ -2,7 +2,7 @@ import { Command } from 'commander'
 
 function generateBashCompletions(name: string): string {
   const commands = [
-    'auth', 'devices', 'discover', 'fleet', 'aoa', 'apps', 'events', 'profile', 'completions', 'help'
+    'auth', 'devices', 'discover', 'fleet', 'aoa', 'apps', 'events', 'profile', 'recording', 'completions', 'help'
   ]
   const authSubs = ['add', 'list', 'remove']
   const devicesSubs = ['info', 'ping', 'list']
@@ -11,6 +11,7 @@ function generateBashCompletions(name: string): string {
   const appsSubs = ['list', 'start', 'stop']
   const eventsSubs = ['stream', 'mqtt']
   const profileSubs = ['create', 'list', 'show', 'use', 'delete', 'update']
+  const recordingSubs = ['list', 'start', 'stop', 'export']
   const globalOpts = ['-f', '--format', '-v', '--verbose', '--debug', '--dry-run', '-h', '--help', '-V', '--version']
   const formats = ['table', 'json', 'jsonl', 'csv', 'yaml']
 
@@ -30,6 +31,7 @@ _${name}() {
     apps) COMPREPLY=($(compgen -W "${appsSubs.join(' ')}" -- "$cur")) ;;
     events) COMPREPLY=($(compgen -W "${eventsSubs.join(' ')}" -- "$cur")) ;;
     profile) COMPREPLY=($(compgen -W "${profileSubs.join(' ')}" -- "$cur")) ;;
+    recording) COMPREPLY=($(compgen -W "${recordingSubs.join(' ')}" -- "$cur")) ;;
     *)
       if [[ "$cur" == -* ]]; then
         COMPREPLY=($(compgen -W "$global_opts" -- "$cur"))
@@ -61,6 +63,7 @@ _${name}() {
     'apps:manage ACAP applications'
     'events:stream real-time analytics events'
     'profile:manage named site profiles'
+    'recording:video recording control'
     'completions:generate shell completions'
     'help:display help'
   )
@@ -92,6 +95,7 @@ _${name}() {
         apps) _values 'subcommand' 'list[list apps]' 'start[start app]' 'stop[stop app]' ;;
         events) _values 'subcommand' 'stream[WebSocket streaming]' 'mqtt[MQTT streaming]' ;;
         profile) _values 'subcommand' 'create[create profile]' 'list[list profiles]' 'show[show profile]' 'use[activate profile]' 'delete[remove profile]' 'update[update profile]' ;;
+        recording) _values 'subcommand' 'list[list recordings]' 'start[trigger recording]' 'stop[stop recording]' 'export[download recording]' ;;
         completions) _values 'shell' 'bash' 'zsh' 'fish' ;;
       esac
       ;;
@@ -124,6 +128,7 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_use_subcommand' -a apps -d 'ACAP applications'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a events -d 'Event streaming'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a profile -d 'Site profiles'`,
+    `complete -c ${name} -n '__fish_use_subcommand' -a recording -d 'Video recording'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a completions -d 'Shell completions'`,
     ``,
     `# auth subcommands`,
@@ -177,6 +182,12 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_seen_subcommand_from profile' -a use -d 'Activate profile'`,
     `complete -c ${name} -n '__fish_seen_subcommand_from profile' -a delete -d 'Remove profile'`,
     `complete -c ${name} -n '__fish_seen_subcommand_from profile' -a update -d 'Update profile'`,
+    ``,
+    `# recording subcommands`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from recording' -a list -d 'List recordings'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from recording' -a start -d 'Trigger recording'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from recording' -a stop -d 'Stop recording'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from recording' -a export -d 'Download recording'`,
     ``,
     `# completions subcommands`,
     `complete -c ${name} -n '__fish_seen_subcommand_from completions' -a 'bash zsh fish' -d 'Shell type'`,
