@@ -1,0 +1,7 @@
+{
+  "name": "@axctl/fuse",
+  "version": "0.1.0",
+  "description": "Finder volume daemon for Axis camera file access",
+  "license": "MIT",
+  "author": "Matthew Visher"
+}

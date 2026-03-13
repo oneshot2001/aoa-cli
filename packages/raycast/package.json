@@ -1,0 +1,7 @@
+{
+  "name": "@axctl/raycast",
+  "version": "0.1.0",
+  "description": "Raycast extension for Axis camera management",
+  "license": "MIT",
+  "author": "Matthew Visher"
+}

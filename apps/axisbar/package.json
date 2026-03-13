@@ -1,0 +1,7 @@
+{
+  "name": "@axctl/axisbar",
+  "version": "0.1.0",
+  "description": "macOS menu bar app for Axis camera monitoring",
+  "license": "MIT",
+  "author": "Matthew Visher"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@axctl/cli",
+  "version": "0.1.0",
+  "description": "Axis camera analytics CLI — configure AOA, stream events, discover devices",
+  "license": "MIT",
+  "author": "Matthew Visher",
+  "type": "module",
+  "bin": {
+    "axctl": "src/index.ts",
+    "axctl-av": "src/alphavision-entry.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build --compile src/index.ts --outfile axctl",
+    "build:av": "bun build --compile src/alphavision-entry.ts --outfile axctl-av",
+    "build:macos-arm64": "bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/axctl-macos-arm64",
+    "build:macos-x64": "bun build --compile --target=bun-darwin-x64 src/index.ts --outfile dist/axctl-macos-x64",
+    "build:linux-arm64": "bun build --compile --target=bun-linux-arm64 src/index.ts --outfile dist/axctl-linux-arm64",
+    "build:linux-x64": "bun build --compile --target=bun-linux-x64 src/index.ts --outfile dist/axctl-linux-x64",
+    "build:windows-x64": "bun build --compile --target=bun-windows-x64 src/index.ts --outfile dist/axctl-windows-x64.exe",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "@axctl/core": "workspace:*",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.4.0",
+    "typescript": "^5"
+  }
+}
