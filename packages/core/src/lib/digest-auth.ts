@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { ConnectionError, TimeoutError } from './errors.js'
 
 interface DigestChallenge {
   realm: string
@@ -63,11 +64,28 @@ export async function digestFetch(
   method: string,
   username: string,
   password: string,
-  body?: string
+  body?: string,
+  timeoutMs = 15000
 ): Promise<Response> {
+  const host = new URL(url).hostname
+
+  const timedFetch = async (init: RequestInit): Promise<Response> => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      return await fetch(url, { ...init, signal: controller.signal })
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new TimeoutError(host, timeoutMs)
+      }
+      throw new ConnectionError(host, err)
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
   // First request — no auth
-  const init401: RequestInit = { method, body }
-  const res401 = await fetch(url, init401)
+  const res401 = await timedFetch({ method, body })
 
   if (res401.status !== 401) return res401
 
@@ -78,7 +96,7 @@ export async function digestFetch(
   const urlPath = new URL(url).pathname + new URL(url).search
   const authHeader = buildDigestHeader(method, urlPath, username, password, challenge)
 
-  return fetch(url, {
+  return timedFetch({
     method,
     body,
     headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
