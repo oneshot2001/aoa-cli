@@ -107,7 +107,7 @@ server.tool(
     const url = `http://${ip}/axis-cgi/jpg/image.cgi${params.toString() ? '?' + params.toString() : ''}`
 
     const { digestFetch } = await import('@axctl/core')
-    const response = await digestFetch(url, auth.username, auth.password)
+    const response = await digestFetch(url, 'GET', auth.username, auth.password)
     if (!response.ok) throw new Error(`Snapshot failed: ${response.status}`)
 
     const buffer = await response.arrayBuffer()
@@ -245,8 +245,8 @@ server.tool(
         await client.gotoPreset(preset)
         return { content: [{ type: 'text' as const, text: `PTZ moved to preset "${preset}" on ${ip}` }] }
       case 'move':
-        await client.continuousMove(pan ?? 0, tilt ?? 0, zoom ?? 0)
-        return { content: [{ type: 'text' as const, text: `PTZ continuous move started on ${ip}` }] }
+        await client.relativeMove(pan ?? 0, tilt ?? 0, zoom ?? 0)
+        return { content: [{ type: 'text' as const, text: `PTZ relative move on ${ip}` }] }
       case 'zoom':
         await client.absoluteMove(0, 0, zoom ?? 1)
         return { content: [{ type: 'text' as const, text: `PTZ zoom set to ${zoom} on ${ip}` }] }

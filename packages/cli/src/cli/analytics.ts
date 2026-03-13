@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { program } from './root.js'
-import { AoaClient, SCENARIO_TYPES, OBJECT_CLASSES } from '@axctl/core'
+import { AoaClient, SCENARIO_TYPES, OBJECT_CLASSES, type AoaConfiguration } from '@axctl/core'
 import { credentialStore } from '@axctl/core'
 import { formatOutput } from '@axctl/core'
 
@@ -213,7 +213,7 @@ aoa
   .action(async (ip: string, file: string) => {
     try {
       const raw = readFileSync(file, 'utf-8')
-      const config = JSON.parse(raw) as import('../lib/aoa-client.js').AoaConfiguration
+      const config = JSON.parse(raw) as AoaConfiguration
       if (program.opts().dryRun) {
         console.log(`[dry-run] Would import ${config.scenarios.length} scenario${config.scenarios.length === 1 ? '' : 's'} to ${ip}`)
         for (const s of config.scenarios) {

@@ -7,7 +7,7 @@ import { discoverAll } from '@axctl/core'
 import { formatOutput } from '@axctl/core'
 import { fleetExec } from '@axctl/core'
 import { VapixClient } from '@axctl/core'
-import { AoaClient } from '@axctl/core'
+import { AoaClient, type AoaConfiguration } from '@axctl/core'
 import { streamEvents, aoaTopics } from '@axctl/core'
 import { streamMqttEvents, mqttAoaTopics } from '@axctl/core'
 
@@ -427,7 +427,7 @@ fleetAoa
   .command('push <name> <file>')
   .description('push AOA configuration from JSON file to all cameras in a fleet')
   .action(async (name: string, file: string) => {
-    let config: import('../lib/aoa-client.js').AoaConfiguration
+    let config: AoaConfiguration
     try {
       config = JSON.parse(readFileSync(file, 'utf-8'))
     } catch (e) {

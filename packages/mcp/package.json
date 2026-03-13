@@ -1,6 +1,6 @@
 {
   "name": "@axctl/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server exposing Axis camera management to Claude Code and Cursor",
   "license": "MIT",
   "author": "Matthew Visher",
