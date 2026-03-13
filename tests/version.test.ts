@@ -3,7 +3,7 @@ import { spawnSync } from 'child_process'
 
 describe('axctl', () => {
   it('outputs version string', () => {
-    const result = spawnSync('bun', ['run', 'src/index.ts', '--version'], {
+    const result = spawnSync('bun', ['run', 'packages/cli/src/index.ts', '--version'], {
       cwd: '/Users/matthewvisher/Documents/axctl',
       encoding: 'utf8',
     })
@@ -11,7 +11,7 @@ describe('axctl', () => {
   })
 
   it('outputs help with expected commands', () => {
-    const result = spawnSync('bun', ['run', 'src/index.ts', '--help'], {
+    const result = spawnSync('bun', ['run', 'packages/cli/src/index.ts', '--help'], {
       cwd: '/Users/matthewvisher/Documents/axctl',
       encoding: 'utf8',
     })

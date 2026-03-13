@@ -1,16 +1,16 @@
-# AOA CLI (axctl) — CLAUDE.md
+# axctl — CLAUDE.md
 
 ## Vault Memory
 At session start, read these files in order:
-1. ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/context.md
-2. ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/decisions.md
-3. ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/patterns.md
-4. ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/bugs.md
-5. ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/architecture.md
-6. Last 3 files (by date) in ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/02-Projects/axctl/dev-log/
-7. All files in ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain/05-Knowledge/patterns/
+1. ~/Obsidian/SecondBrain/02-Projects/axctl/context.md
+2. ~/Obsidian/SecondBrain/02-Projects/axctl/decisions.md
+3. ~/Obsidian/SecondBrain/02-Projects/axctl/patterns.md
+4. ~/Obsidian/SecondBrain/02-Projects/axctl/bugs.md
+5. ~/Obsidian/SecondBrain/02-Projects/axctl/architecture.md
+6. Last 3 files (by date) in ~/Obsidian/SecondBrain/02-Projects/axctl/dev-log/
+7. All files in ~/Obsidian/SecondBrain/05-Knowledge/patterns/
 
-Vault root: ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Second Brain
+Vault root: ~/Obsidian/SecondBrain
 
 ## Auto-Capture Rules
 During this session, track:
@@ -35,7 +35,7 @@ project: axctl
 tags: [dev-log]
 ---
 
-# Dev Session — AOA CLI — YYYY-MM-DD #N
+# Dev Session — axctl — YYYY-MM-DD #N
 
 ## Summary
 [1-2 sentence overview of what this session accomplished]
@@ -75,50 +75,88 @@ tags: [dev-log]
 - [Top priority]
 ```
 
-## Project Details
+## Monorepo Structure
+
+```
+axctl/
+├── packages/
+│   ├── core/           @axctl/core — VAPIX clients, discovery, auth, storage
+│   │   ├── src/
+│   │   │   ├── lib/        17 client modules (vapix, aoa, ptz, fleet, etc.)
+│   │   │   ├── types/      TypeScript type definitions
+│   │   │   ├── formatters/ Output formatters (table/json/jsonl/csv/yaml)
+│   │   │   ├── alphavision/ AlphaVision platform integration
+│   │   │   ├── storage/    SQLite registry + macOS Keychain + migration
+│   │   │   ├── index.ts    Barrel export
+│   │   │   └── client.ts   High-level AxctlClient
+│   │   └── tests/
+│   ├── cli/            @axctl/cli — CLI commands importing from @axctl/core
+│   │   └── src/
+│   │       ├── cli/        16 command files (Commander.js)
+│   │       ├── index.ts    CLI entry point
+│   │       └── alphavision-entry.ts
+│   ├── mcp/            @axctl/mcp — MCP server for Claude Code / Cursor
+│   │   └── src/
+│   │       └── index.ts    11 tools, stdio transport
+│   └── raycast/        @axctl/raycast — Raycast extension (planned)
+├── apps/
+│   ├── axisbar/        macOS menu bar app (planned, Swift)
+│   └── fuse/           Finder volume daemon (planned, Swift)
+├── mcp-config.json     Drop-in Claude Code MCP config
+└── tests/              Root integration tests
+```
 
 ### Stack
-- Bun + TypeScript (strict)
+- Bun + TypeScript (strict) — monorepo with Bun workspaces
 - Commander.js (CLI framework)
 - Native fetch + custom HTTP Digest Auth
+- bun:sqlite (device registry — zero deps)
+- macOS Keychain via `security` CLI (credential storage)
 - mqtt.js (event streaming)
 - bonjour-service + custom SSDP (discovery)
-- js-yaml (config)
-- cli-table3 (output formatting)
+- @modelcontextprotocol/sdk (MCP server)
+- cli-table3 + js-yaml (output formatting)
+
+### Storage
+| Data | Location |
+|------|----------|
+| Device registry | `~/.axctl/devices.db` (SQLite) |
+| Credentials (macOS) | Keychain `com.axctl.device-credentials` |
+| Credentials (fallback) | `~/.axctl/device-credentials-credentials.json` (chmod 600) |
+| Fleets | SQLite `fleets` + `fleet_members` tables |
+| Profiles | SQLite `profiles` table |
+| Config | SQLite `config` table |
+
+Auto-migration from old Conf (JSON) storage on first access.
 
 ### Build Commands
 ```bash
 # Dev run
-bun run src/index.ts
+bun run dev
 
 # Build single binary
-bun build --compile src/index.ts --outfile axctl
+bun run build
 
-# Test
+# Test (all workspaces)
 bun test
 
 # Type check
 bunx tsc --noEmit
+
+# Start MCP server
+bun run mcp
 ```
 
 ### Deploy
 ```bash
-# macOS ARM64
-bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/axctl-macos-arm64
-
-# macOS x86
-bun build --compile --target=bun-darwin-x64 src/index.ts --outfile dist/axctl-macos-x64
-
-# Linux ARM64
-bun build --compile --target=bun-linux-arm64 src/index.ts --outfile dist/axctl-linux-arm64
-
-# Linux x86
-bun build --compile --target=bun-linux-x64 src/index.ts --outfile dist/axctl-linux-x64
+bun run build:all        # macOS + Linux, arm64 + x64
+bun run release          # Package as tar.gz/zip
+bun run release:checksums
 ```
 
 ### Quality Gates
-1. Build passes (`bun build --compile src/index.ts --outfile axctl`)
-2. Tests pass (`bun test`)
+1. Build passes (`bun run build`)
+2. Tests pass (`bun test`) — 57 tests across 6 files
 3. Types verified (`bunx tsc --noEmit`)
 4. Tested against at least one real Axis camera on local network
 5. Git: staged, committed, pushed
