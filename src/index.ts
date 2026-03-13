@@ -13,6 +13,7 @@ import './cli/profile.js'
 import './cli/recording.js'
 import './cli/system.js'
 import './cli/rules.js'
+import './cli/alphavision.js'
 import { startInteractive } from './cli/interactive.js'
 
 // Register interactive as a named command too

@@ -4,13 +4,20 @@
   "description": "Axis camera analytics CLI \u2014 configure AOA, stream events, discover devices",
   "module": "src/index.ts",
   "main": "src/index.ts",
+  "types": "./src/core/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./core": "./src/core/index.ts"
+  },
   "bin": {
-    "axctl": "src/index.ts"
+    "axctl": "src/index.ts",
+    "axctl-av": "src/alphavision-entry.ts"
   },
   "type": "module",
   "scripts": {
     "dev": "bun run src/index.ts",
     "build": "bun build --compile src/index.ts --outfile axctl",
+    "build:av": "bun build --compile src/alphavision-entry.ts --outfile axctl-av",
     "build:all": "bun run build:macos-arm64 && bun run build:macos-x64 && bun run build:linux-arm64 && bun run build:linux-x64 && bun run build:windows-x64",
     "build:macos-arm64": "bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile dist/axctl-macos-arm64",
     "build:macos-x64": "bun build --compile --target=bun-darwin-x64 src/index.ts --outfile dist/axctl-macos-x64",
