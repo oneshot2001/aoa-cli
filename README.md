@@ -361,4 +361,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, and ho
 
 ---
 
-Created by Matthew at [AlphaVision](https://alphavision.io)
+Created by Matthew at [AlphaVision](https://alphavision.ai)
