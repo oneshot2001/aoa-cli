@@ -1,7 +1,7 @@
 import { program } from './root.js'
-import { VapixClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { VapixClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 const devices = program
   .command('devices')

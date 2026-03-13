@@ -16,7 +16,7 @@ import {
   credentialStore,
   fleetExec,
   deviceRegistry,
-} from '@axctl/core'
+} from 'axctl-core'
 
 const server = new McpServer({
   name: 'axis',

@@ -10,7 +10,7 @@
     "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {
-    "@axctl/core": "workspace:*",
+    "axctl-core": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
   },

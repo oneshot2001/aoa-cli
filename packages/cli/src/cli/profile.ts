@@ -1,8 +1,8 @@
 import { program } from './root.js'
-import { profileStore } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { fleetStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { profileStore } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { fleetStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 const profile = program
   .command('profile')

@@ -1,4 +1,4 @@
-import { VapixClient } from '@axctl/core'
+import { VapixClient } from 'axctl-core'
 
 const client = new VapixClient('192.168.1.33', 'root', 'pass')
 

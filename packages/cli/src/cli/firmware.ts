@@ -1,10 +1,10 @@
 import { existsSync } from 'fs'
 import { createInterface } from 'readline'
 import { program } from './root.js'
-import { FirmwareClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
-import { fleetExec } from '@axctl/core'
+import { FirmwareClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
+import { fleetExec } from 'axctl-core'
 
 const firmware = program
   .command('firmware')

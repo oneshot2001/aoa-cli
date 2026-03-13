@@ -21,7 +21,7 @@
     "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {
-    "@axctl/core": "workspace:*",
+    "axctl-core": "workspace:*",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.3"
   },

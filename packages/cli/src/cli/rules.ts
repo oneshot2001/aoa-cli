@@ -1,7 +1,7 @@
 import { program } from './root.js'
-import { RulesClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { RulesClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 function getClient(ip: string): RulesClient {
   const cred = credentialStore.get(ip)

@@ -1,12 +1,12 @@
 import * as readline from 'readline'
 import { program } from './root.js'
-import { formatOutput } from '@axctl/core'
-import { avConfigStore } from '@axctl/core/alphavision'
-import type { AlphaVisionConfig } from '@axctl/core/alphavision'
-import { authenticate, validateConnection } from '@axctl/core/alphavision'
-import { startIngestion, startFleetIngestion } from '@axctl/core/alphavision'
-import { syncCameras, pullCameras, reconcile } from '@axctl/core/alphavision'
-import { credentialStore } from '@axctl/core'
+import { formatOutput } from 'axctl-core'
+import { avConfigStore } from 'axctl-core/alphavision'
+import type { AlphaVisionConfig } from 'axctl-core/alphavision'
+import { authenticate, validateConnection } from 'axctl-core/alphavision'
+import { startIngestion, startFleetIngestion } from 'axctl-core/alphavision'
+import { syncCameras, pullCameras, reconcile } from 'axctl-core/alphavision'
+import { credentialStore } from 'axctl-core'
 
 // ---- Helpers -----------------------------------------------------------------
 

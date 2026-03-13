@@ -1,8 +1,8 @@
 import { program } from './root.js'
-import { SystemClient } from '@axctl/core'
-import { VapixClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { SystemClient } from 'axctl-core'
+import { VapixClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 const system = program
   .command('system')

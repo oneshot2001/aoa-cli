@@ -1,8 +1,8 @@
 import { spawn } from 'child_process'
 import { program } from './root.js'
-import { streamEvents, aoaTopics } from '@axctl/core'
-import { streamMqttEvents, mqttAoaTopics } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
+import { streamEvents, aoaTopics } from 'axctl-core'
+import { streamMqttEvents, mqttAoaTopics } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
 
 const events = program
   .command('events')

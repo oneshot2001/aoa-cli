@@ -1,5 +1,5 @@
 import { program } from './root.js'
-import { credentialStore } from '@axctl/core'
+import { credentialStore } from 'axctl-core'
 import Table from 'cli-table3'
 import * as readline from 'readline'
 

@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { program } from './root.js'
-import { AoaClient, SCENARIO_TYPES, OBJECT_CLASSES, type AoaConfiguration } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { AoaClient, SCENARIO_TYPES, OBJECT_CLASSES, type AoaConfiguration } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 function getClient(ip: string): AoaClient {
   const cred = credentialStore.get(ip)

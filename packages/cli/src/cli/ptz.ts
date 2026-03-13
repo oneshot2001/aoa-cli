@@ -1,7 +1,7 @@
 import { program } from './root.js'
-import { PtzClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { PtzClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 function getClient(ip: string): PtzClient {
   const cred = credentialStore.get(ip)

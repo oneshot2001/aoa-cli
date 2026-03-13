@@ -1,7 +1,7 @@
 import { program } from './root.js'
-import { RecordingClient } from '@axctl/core'
-import { credentialStore } from '@axctl/core'
-import { formatOutput } from '@axctl/core'
+import { RecordingClient } from 'axctl-core'
+import { credentialStore } from 'axctl-core'
+import { formatOutput } from 'axctl-core'
 
 function getClient(ip: string): RecordingClient {
   const cred = credentialStore.get(ip)
