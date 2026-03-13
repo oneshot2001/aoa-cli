@@ -17,6 +17,10 @@ profile
       console.error(`Profile "${name}" already exists`)
       process.exit(1)
     }
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would create profile "${name}"${opts.import ? ' with imported credentials and fleets' : ' (empty)'}`)
+      return
+    }
     profileStore.create(name)
     if (opts.import) {
       profileStore.importFrom(name)
@@ -89,6 +93,13 @@ profile
       console.error(`Profile "${name}" not found`)
       process.exit(1)
     }
+    if (program.opts().dryRun) {
+      const p = profileStore.get(name)!
+      const credCount = Object.keys(p.credentials).length
+      const fleetCount = Object.keys(p.fleets).length
+      console.log(`[dry-run] Would activate profile "${name}" — ${credCount} credential${credCount === 1 ? '' : 's'}, ${fleetCount} fleet${fleetCount === 1 ? '' : 's'} would be loaded`)
+      return
+    }
     profileStore.activate(name)
     const p = profileStore.get(name)!
     const credCount = Object.keys(p.credentials).length
@@ -100,6 +111,14 @@ profile
   .command('delete <name>')
   .description('remove a profile')
   .action((name: string) => {
+    if (program.opts().dryRun) {
+      if (!profileStore.has(name)) {
+        console.error(`Profile "${name}" not found`)
+        process.exit(1)
+      }
+      console.log(`[dry-run] Would delete profile "${name}"`)
+      return
+    }
     if (profileStore.remove(name)) {
       console.log(`✓ Profile "${name}" deleted`)
     } else {
@@ -120,6 +139,10 @@ profile
     if (!opts.import) {
       console.error('Specify --import to re-import current credentials and fleets')
       process.exit(1)
+    }
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would update profile "${name}" with current global credentials and fleets`)
+      return
     }
     profileStore.importFrom(name)
     const p = profileStore.get(name)!

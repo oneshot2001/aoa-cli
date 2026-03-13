@@ -85,10 +85,16 @@ aoa
       console.error(`Unknown type "${type}". Valid: ${SCENARIO_TYPES.join(', ')}`)
       process.exit(1)
     }
+    const objects = opts.objects.split(',').map((s) => s.trim()).filter(Boolean)
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would create scenario "${name}" (type: ${type}) on ${ip}`)
+      console.log(`  Objects: ${objects.join(', ')}`)
+      console.log(`  Device: ${opts.device}`)
+      return
+    }
     const client = getClient(ip)
     const fmt = program.opts().format as string
     try {
-      const objects = opts.objects.split(',').map((s) => s.trim()).filter(Boolean)
       const scenario = await client.addScenario(name, type, parseInt(opts.device), objects)
       console.log(`✓ Scenario created (id=${scenario.id})`)
       console.log(formatOutput({ id: scenario.id, name: scenario.name, type: scenario.type, trigger: scenario.triggers[0]?.type ?? '?', objects: objects.join(', ') }, fmt))
@@ -99,6 +105,10 @@ aoa
   .command('remove <ip> <id>')
   .description('delete a scenario by ID')
   .action(async (ip: string, idStr: string) => {
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would remove scenario ${idStr} from ${ip}`)
+      return
+    }
     const client = getClient(ip)
     try {
       await client.removeScenario(parseInt(idStr))
@@ -110,6 +120,10 @@ aoa
   .command('rename <ip> <id> <newName>')
   .description('rename a scenario')
   .action(async (ip: string, idStr: string, newName: string) => {
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would rename scenario ${idStr} to "${newName}" on ${ip}`)
+      return
+    }
     const client = getClient(ip)
     try {
       await client.updateScenarioName(parseInt(idStr), newName)
@@ -123,6 +137,10 @@ aoa
   .command('alarm <ip> <id>')
   .description('fire a 3-second test alarm on a scenario')
   .action(async (ip: string, idStr: string) => {
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would fire test alarm on scenario ${idStr} on ${ip}`)
+      return
+    }
     const client = getClient(ip)
     try {
       await client.sendAlarmEvent(parseInt(idStr))
@@ -158,6 +176,10 @@ aoa
   .command('reset <ip> <id>')
   .description('reset accumulated counts for a crosslinecounting scenario')
   .action(async (ip: string, idStr: string) => {
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would reset accumulated counts for scenario ${idStr} on ${ip}`)
+      return
+    }
     const client = getClient(ip)
     try {
       await client.resetAccumulatedCounts(parseInt(idStr))
@@ -189,10 +211,17 @@ aoa
   .command('import <ip> <file>')
   .description('import AOA configuration from JSON file')
   .action(async (ip: string, file: string) => {
-    const client = getClient(ip)
     try {
       const raw = readFileSync(file, 'utf-8')
       const config = JSON.parse(raw) as import('../lib/aoa-client.js').AoaConfiguration
+      if (program.opts().dryRun) {
+        console.log(`[dry-run] Would import ${config.scenarios.length} scenario${config.scenarios.length === 1 ? '' : 's'} to ${ip}`)
+        for (const s of config.scenarios) {
+          console.log(`  - ${s.name} (${s.type})`)
+        }
+        return
+      }
+      const client = getClient(ip)
       await client.importConfiguration(config)
       console.log(`✓ AOA config imported to ${ip} (${config.scenarios.length} scenarios)`)
     } catch (e) { console.error(e instanceof Error ? e.message : e); process.exit(1) }

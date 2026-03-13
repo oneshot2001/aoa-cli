@@ -90,6 +90,11 @@ fleet
       }
     }
 
+    if (program.opts().dryRun) {
+      console.log(`[dry-run] Would create fleet "${name}" with ${ips.length} device${ips.length === 1 ? '' : 's'}: ${ips.join(', ')}`)
+      return
+    }
+
     fleetStore.create(name, ips)
     console.log(`✓ Fleet "${name}" created with ${ips.length} device${ips.length === 1 ? '' : 's'}: ${ips.join(', ')}`)
   })
@@ -124,6 +129,15 @@ fleet
   .command('delete <name>')
   .description('remove a fleet')
   .action((name: string) => {
+    if (program.opts().dryRun) {
+      if (!fleetStore.has(name)) {
+        console.error(`Fleet "${name}" not found`)
+        process.exit(1)
+      }
+      const f = fleetStore.get(name)!
+      console.log(`[dry-run] Would delete fleet "${name}" (${f.ips.length} device${f.ips.length === 1 ? '' : 's'})`)
+      return
+    }
     if (fleetStore.remove(name)) {
       console.log(`✓ Fleet "${name}" deleted`)
     } else {
@@ -275,14 +289,18 @@ fleet
 
       // Webhook
       if (opts.webhook) {
-        const report = { timestamp: new Date().toISOString(), fleet: name, total, healthy: total - offline, degraded: offline, devices: rows }
-        fetch(opts.webhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(report),
-        }).catch((err) => {
-          process.stderr.write(`Webhook error: ${(err as Error).message}\n`)
-        })
+        if (program.opts().dryRun) {
+          console.log(`[dry-run] Would POST health report to ${opts.webhook}`)
+        } else {
+          const report = { timestamp: new Date().toISOString(), fleet: name, total, healthy: total - offline, degraded: offline, devices: rows }
+          fetch(opts.webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(report),
+          }).catch((err) => {
+            process.stderr.write(`Webhook error: ${(err as Error).message}\n`)
+          })
+        }
       }
 
       // Return exit code indicator
@@ -384,6 +402,15 @@ fleetAoa
   .action(async (name: string, scenarioName: string, type: string, opts: { objects: string; device: string }) => {
     const objects = opts.objects.split(',').map((s) => s.trim()).filter(Boolean)
     const deviceId = parseInt(opts.device)
+    if (program.opts().dryRun) {
+      const f = fleetStore.get(name)
+      if (!f) { console.error(`Fleet "${name}" not found`); process.exit(1) }
+      console.log(`[dry-run] Would create scenario "${scenarioName}" (type: ${type}) on ${f.ips.length} device${f.ips.length === 1 ? '' : 's'} in fleet "${name}"`)
+      console.log(`  Objects: ${objects.join(', ')}`)
+      console.log(`  Device: ${deviceId}`)
+      for (const ip of f.ips) console.log(`  - ${ip}`)
+      return
+    }
     const results = await fleetExec(name, async (ip, user, pass) => {
       const client = new AoaClient(ip, user, pass)
       return client.addScenario(scenarioName, type, deviceId, objects)
@@ -406,6 +433,15 @@ fleetAoa
     } catch (e) {
       console.error(`Failed to read ${file}: ${e instanceof Error ? e.message : e}`)
       process.exit(1)
+    }
+
+    if (program.opts().dryRun) {
+      const f = fleetStore.get(name)
+      if (!f) { console.error(`Fleet "${name}" not found`); process.exit(1) }
+      console.log(`[dry-run] Would push ${config.scenarios.length} scenario${config.scenarios.length === 1 ? '' : 's'} from ${file} to ${f.ips.length} device${f.ips.length === 1 ? '' : 's'} in fleet "${name}"`)
+      for (const s of config.scenarios) console.log(`  - ${s.name} (${s.type})`)
+      console.log(`  Targets: ${f.ips.join(', ')}`)
+      return
     }
 
     const results = await fleetExec(name, async (ip, user, pass) => {

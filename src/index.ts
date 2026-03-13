@@ -8,5 +8,19 @@ import './cli/analytics.js'
 import './cli/apps.js'
 import './cli/events.js'
 import './cli/profile.js'
+import { startInteractive } from './cli/interactive.js'
 
-program.parse(process.argv)
+// Register interactive as a named command too
+program
+  .command('interactive')
+  .alias('i')
+  .description('start interactive REPL mode')
+  .action(() => startInteractive())
+
+// If no args (just "axctl" with no commands or flags), start interactive
+const userArgs = process.argv.slice(2)
+if (userArgs.length === 0) {
+  startInteractive()
+} else {
+  program.parse(process.argv)
+}
