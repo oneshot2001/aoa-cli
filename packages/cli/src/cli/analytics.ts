@@ -3,6 +3,7 @@ import { program } from './root.js'
 import { AoaClient, SCENARIO_TYPES, OBJECT_CLASSES, type AoaConfiguration } from 'axctl-core'
 import { credentialStore } from 'axctl-core'
 import { formatOutput } from 'axctl-core'
+import { telemetry } from 'axctl-core'
 
 function getClient(ip: string): AoaClient {
   const cred = credentialStore.get(ip)
@@ -24,6 +25,21 @@ aoa
     const client = getClient(ip)
     try {
       const scenarios = await client.getScenarios()
+
+      // Telemetry: config snapshot for drift detection
+      if (scenarios.length > 0) {
+        const configStr = JSON.stringify(scenarios.map((s) => ({
+          name: s.name, type: s.type,
+          objects: s.objectClassifications.map((o) => o.type),
+        })))
+        const hashBuffer = new Bun.CryptoHasher('sha256').update(configStr).digest('hex')
+        telemetry.recordConfigSnapshot({
+          device_ip: ip, scenario_count: scenarios.length,
+          scenario_hash: hashBuffer,
+          scenario_names: scenarios.map((s) => s.name),
+        })
+      }
+
       if (scenarios.length === 0) {
         console.log('No scenarios. Create one: axctl aoa create <ip> <name> <type>')
         return

@@ -3,7 +3,7 @@ import { Command } from 'commander'
 function generateBashCompletions(name: string): string {
   const commands = [
     'auth', 'devices', 'discover', 'fleet', 'aoa', 'apps', 'events', 'profile',
-    'recording', 'ptz', 'firmware', 'system', 'rules', 'config', 'interactive', 'completions', 'help'
+    'recording', 'ptz', 'firmware', 'system', 'rules', 'config', 'telemetry', 'interactive', 'completions', 'help'
   ]
   const authSubs = ['add', 'list', 'remove']
   const devicesSubs = ['info', 'ping', 'list']
@@ -18,7 +18,8 @@ function generateBashCompletions(name: string): string {
   const systemSubs = ['info', 'time', 'network', 'users']
   const rulesSubs = ['list', 'enable', 'disable', 'remove', 'templates']
   const configSubs = ['get', 'set', 'unset', 'list', 'keys']
-  const globalOpts = ['-f', '--format', '-v', '--verbose', '--debug', '--dry-run', '-h', '--help', '-V', '--version']
+  const telemetrySubs = ['stats']
+  const globalOpts = ['-f', '--format', '-v', '--verbose', '--debug', '--dry-run', '--no-telemetry', '-h', '--help', '-V', '--version']
   const formats = ['table', 'json', 'jsonl', 'csv', 'yaml']
 
   return `# bash completion for ${name}
@@ -43,6 +44,7 @@ _${name}() {
     system) COMPREPLY=($(compgen -W "${systemSubs.join(' ')}" -- "$cur")) ;;
     rules) COMPREPLY=($(compgen -W "${rulesSubs.join(' ')}" -- "$cur")) ;;
     config) COMPREPLY=($(compgen -W "${configSubs.join(' ')}" -- "$cur")) ;;
+    telemetry) COMPREPLY=($(compgen -W "${telemetrySubs.join(' ')}" -- "$cur")) ;;
     *)
       if [[ "$cur" == -* ]]; then
         COMPREPLY=($(compgen -W "$global_opts" -- "$cur"))
@@ -80,6 +82,7 @@ _${name}() {
     'system:system and network info'
     'rules:action rule management'
     'config:manage axctl configuration'
+    'telemetry:local telemetry management'
     'interactive:start interactive REPL'
     'completions:generate shell completions'
     'help:display help'
@@ -92,6 +95,7 @@ _${name}() {
     '--verbose[verbose output]' \\
     '--debug[debug logging]' \\
     '--dry-run[preview changes]' \\
+    '--no-telemetry[disable local telemetry]' \\
     '-V[show version]' \\
     '--version[show version]' \\
     '-h[show help]' \\
@@ -118,6 +122,7 @@ _${name}() {
         system) _values 'subcommand' 'info[device info]' 'time[date/time/NTP]' 'network[network config]' 'users[user list]' ;;
         rules) _values 'subcommand' 'list[list rules]' 'enable[enable rule]' 'disable[disable rule]' 'remove[delete rule]' 'templates[action templates]' ;;
         config) _values 'subcommand' 'get[get value]' 'set[set value]' 'unset[remove value]' 'list[list all values]' 'keys[list known keys]' ;;
+        telemetry) _values 'subcommand' 'stats[collection statistics]' ;;
         completions) _values 'shell' 'bash' 'zsh' 'fish' ;;
       esac
       ;;
@@ -139,6 +144,7 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -s v -l verbose -d 'Verbose output'`,
     `complete -c ${name} -l debug -d 'Debug logging'`,
     `complete -c ${name} -l dry-run -d 'Preview changes'`,
+    `complete -c ${name} -l no-telemetry -d 'Disable local telemetry'`,
     `complete -c ${name} -s V -l version -d 'Show version'`,
     ``,
     `# Top-level commands`,
@@ -156,6 +162,7 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_use_subcommand' -a system -d 'System info'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a rules -d 'Action rules'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a config -d 'Configuration'`,
+    `complete -c ${name} -n '__fish_use_subcommand' -a telemetry -d 'Telemetry management'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a interactive -d 'Interactive REPL'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a completions -d 'Shell completions'`,
     ``,
@@ -249,6 +256,9 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_seen_subcommand_from config' -a list -d 'List all values'`,
     `complete -c ${name} -n '__fish_seen_subcommand_from config' -a keys -d 'List known keys'`,
     ``,
+    `# telemetry subcommands`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from telemetry' -a stats -d 'Collection statistics'`,
+    ``,
     `# completions subcommands`,
     `complete -c ${name} -n '__fish_seen_subcommand_from completions' -a 'bash zsh fish' -d 'Shell type'`,
   ]
@@ -265,6 +275,7 @@ program
   .option('-v, --verbose', 'verbose output')
   .option('--debug', 'debug logging (show raw requests/responses)')
   .option('--dry-run', 'preview changes without applying them')
+  .option('--no-telemetry', 'disable local telemetry collection')
 
 program
   .command('completions <shell>')

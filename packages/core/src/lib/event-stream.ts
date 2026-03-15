@@ -1,4 +1,5 @@
 import { digestFetch } from './digest-auth.js'
+import { telemetry } from './telemetry.js'
 
 // ---- Types -----------------------------------------------------------------
 
@@ -104,7 +105,14 @@ export async function streamEvents(
 
         if (data.method === 'events:notify' && data.params?.notification) {
           const event = parseEvent(data.params.notification)
-          if (event) opts.onEvent(event)
+          if (event) {
+            telemetry.recordEvent({
+              device_ip: host, scenario_name: `Scenario${event.scenarioId}`,
+              event_type: event.scenarioType, object_class: event.classTypes,
+              confidence: null, timestamp: event.triggerTime,
+            })
+            opts.onEvent(event)
+          }
         }
       } catch (e) {
         opts.onError?.(e instanceof Error ? e : new Error(String(e)))

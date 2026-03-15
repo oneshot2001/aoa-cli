@@ -1,4 +1,5 @@
 import { digestFetch } from './digest-auth.js'
+import { telemetry } from './telemetry.js'
 
 export interface DeviceProperties {
   Model: string
@@ -29,18 +30,52 @@ export class VapixClient {
 
   async get(path: string): Promise<unknown> {
     const url = `${this.baseUrl}${path}`
-    const res = await digestFetch(url, 'GET', this.username, this.password)
-    if (!res.ok) throw new Error(`VAPIX GET ${path} → ${res.status} ${res.statusText}`)
+    const start = performance.now()
+    let res: Response
+    try {
+      res = await digestFetch(url, 'GET', this.username, this.password)
+    } catch (err) {
+      telemetry.recordVapixCall({
+        device_ip: this.host, endpoint: path, method: 'GET',
+        status_code: 0, latency_ms: performance.now() - start,
+        response_bytes: 0, auth_retries: 0,
+        error: (err as Error).message,
+      })
+      throw err
+    }
     const text = await res.text()
+    telemetry.recordVapixCall({
+      device_ip: this.host, endpoint: path, method: 'GET',
+      status_code: res.status, latency_ms: performance.now() - start,
+      response_bytes: text.length, auth_retries: 0,
+    })
+    if (!res.ok) throw new Error(`VAPIX GET ${path} → ${res.status} ${res.statusText}`)
     try { return JSON.parse(text) } catch { return text }
   }
 
   async post(path: string, body: unknown): Promise<unknown> {
     const url = `${this.baseUrl}${path}`
     const payload = JSON.stringify(body)
-    const res = await digestFetch(url, 'POST', this.username, this.password, payload)
-    if (!res.ok) throw new Error(`VAPIX POST ${path} → ${res.status} ${res.statusText}`)
+    const start = performance.now()
+    let res: Response
+    try {
+      res = await digestFetch(url, 'POST', this.username, this.password, payload)
+    } catch (err) {
+      telemetry.recordVapixCall({
+        device_ip: this.host, endpoint: path, method: 'POST',
+        status_code: 0, latency_ms: performance.now() - start,
+        response_bytes: 0, auth_retries: 0,
+        error: (err as Error).message,
+      })
+      throw err
+    }
     const text = await res.text()
+    telemetry.recordVapixCall({
+      device_ip: this.host, endpoint: path, method: 'POST',
+      status_code: res.status, latency_ms: performance.now() - start,
+      response_bytes: text.length, auth_retries: 0,
+    })
+    if (!res.ok) throw new Error(`VAPIX POST ${path} → ${res.status} ${res.statusText}`)
     try { return JSON.parse(text) } catch { return text }
   }
 

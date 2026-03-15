@@ -2,6 +2,7 @@ import { program } from './root.js'
 import { VapixClient } from 'axctl-core'
 import { credentialStore } from 'axctl-core'
 import { formatOutput } from 'axctl-core'
+import { telemetry } from 'axctl-core'
 
 const devices = program
   .command('devices')
@@ -53,9 +54,13 @@ devices
     }
 
     const client = new VapixClient(ip, cred.username, cred.password)
-    const start = Date.now()
+    const start = performance.now()
     const alive = await client.ping()
-    const ms = Date.now() - start
+    const ms = Math.round(performance.now() - start)
+
+    telemetry.recordHealthCheck({
+      device_ip: ip, reachable: alive, latency_ms: ms,
+    })
 
     if (alive) {
       console.log(`✓ ${ip} — reachable (${ms}ms)`)

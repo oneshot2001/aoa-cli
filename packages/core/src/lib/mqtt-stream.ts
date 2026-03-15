@@ -1,6 +1,7 @@
 import mqtt from 'mqtt'
 import { digestFetch } from './digest-auth.js'
 import type { AoaEvent } from './event-stream.js'
+import { telemetry } from './telemetry.js'
 
 export interface MqttStreamOptions {
   topicFilters?: string[]
@@ -131,7 +132,14 @@ export async function streamMqttEvents(
 
     client.on('message', (topic: string, payload: Buffer) => {
       const event = parseMqttEvent(topic, payload)
-      if (event) opts.onEvent(event)
+      if (event) {
+        telemetry.recordEvent({
+          device_ip: host, scenario_name: `Scenario${event.scenarioId}`,
+          event_type: event.scenarioType, object_class: event.classTypes,
+          confidence: null, timestamp: event.triggerTime,
+        })
+        opts.onEvent(event)
+      }
     })
 
     client.on('error', (err: Error) => {

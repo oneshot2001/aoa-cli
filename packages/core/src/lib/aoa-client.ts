@@ -1,4 +1,5 @@
 import { buildDigestHeader } from './digest-auth.js'
+import { telemetry } from './telemetry.js'
 
 // ---- Types -----------------------------------------------------------------
 
@@ -122,27 +123,50 @@ export class AoaClient {
 
   private async call(method: string, params?: Record<string, unknown>): Promise<unknown> {
     const body = JSON.stringify({ apiVersion: '1.6', method, ...(params ? { params } : {}) })
-
-    const probe = await fetch(this.url, {
-      method: 'POST', body, headers: { 'Content-Type': 'application/json' }
-    })
+    const endpoint = '/local/objectanalytics/control.cgi'
+    const start = performance.now()
 
     let res: Response
-    if (probe.status === 401) {
-      const wwwAuth = probe.headers.get('www-authenticate') ?? ''
-      const fields: Record<string, string> = {}
-      const re = /(\w+)="([^"]+)"/g
-      let m: RegExpExecArray | null
-      while ((m = re.exec(wwwAuth)) !== null) fields[m[1]!] = m[2]!
-      const challenge = { realm: fields.realm ?? '', nonce: fields.nonce ?? '', algorithm: 'MD5', qop: fields.qop, opaque: fields.opaque }
-      const authHeader = buildDigestHeader('POST', '/local/objectanalytics/control.cgi', this.username, this.password, challenge)
-      res = await fetch(this.url, { method: 'POST', body, headers: { 'Content-Type': 'application/json', Authorization: authHeader } })
-    } else {
-      res = probe
+    let authRetries = 0
+    try {
+      const probe = await fetch(this.url, {
+        method: 'POST', body, headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (probe.status === 401) {
+        authRetries = 1
+        const wwwAuth = probe.headers.get('www-authenticate') ?? ''
+        const fields: Record<string, string> = {}
+        const re = /(\w+)="([^"]+)"/g
+        let m: RegExpExecArray | null
+        while ((m = re.exec(wwwAuth)) !== null) fields[m[1]!] = m[2]!
+        const challenge = { realm: fields.realm ?? '', nonce: fields.nonce ?? '', algorithm: 'MD5', qop: fields.qop, opaque: fields.opaque }
+        const authHeader = buildDigestHeader('POST', endpoint, this.username, this.password, challenge)
+        res = await fetch(this.url, { method: 'POST', body, headers: { 'Content-Type': 'application/json', Authorization: authHeader } })
+      } else {
+        res = probe
+      }
+    } catch (err) {
+      telemetry.recordVapixCall({
+        device_ip: this.host, endpoint, method: 'POST',
+        status_code: 0, latency_ms: performance.now() - start,
+        response_bytes: 0, auth_retries: authRetries,
+        error: (err as Error).message,
+      })
+      throw err
     }
 
-    if (!res.ok) throw new Error(`AOA HTTP ${res.status}`)
     const json = await res.json() as { data?: unknown; error?: { code: string; message: string } }
+    const latency = performance.now() - start
+
+    telemetry.recordVapixCall({
+      device_ip: this.host, endpoint, method: 'POST',
+      status_code: res.status, latency_ms: latency,
+      response_bytes: JSON.stringify(json).length, auth_retries: authRetries,
+      error: json.error ? `${json.error.code}: ${json.error.message}` : undefined,
+    })
+
+    if (!res.ok) throw new Error(`AOA HTTP ${res.status}`)
     if (json.error) throw new Error(`AOA error ${json.error.code}: ${json.error.message}`)
     return json.data
   }

@@ -98,6 +98,10 @@ export type { ScenarioType, ObjectClass, AoaScenario } from './types/analytics.j
 // --- Event Types ---
 export type { AnalyticsEvent } from './types/events.js'
 
+// --- Telemetry ---
+export { telemetry, setTelemetryDebug } from './lib/telemetry.js'
+export type { TelemetryCollector } from './lib/telemetry.js'
+
 // --- High-Level Client ---
 export { AxctlClient } from './client.js'
 
