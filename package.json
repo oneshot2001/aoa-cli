@@ -28,5 +28,9 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.4.0",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "js-yaml": "^4.1.1"
   }
 }
