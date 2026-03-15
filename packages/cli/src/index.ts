@@ -17,6 +17,7 @@ import './cli/system.js'
 import './cli/rules.js'
 import './cli/alphavision.js'
 import './cli/config.js'
+import './cli/health.js'
 import './cli/telemetry.js'
 import { startInteractive } from './cli/interactive.js'
 

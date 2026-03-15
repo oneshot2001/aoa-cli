@@ -1,6 +1,7 @@
 import { VapixClient } from './lib/vapix-client.js'
 import type { DeviceProperties } from './lib/vapix-client.js'
 import { AoaClient } from './lib/aoa-client.js'
+import { AihaClient } from './lib/aiha-client.js'
 import { PtzClient } from './lib/ptz-client.js'
 import { RecordingClient } from './lib/recording-client.js'
 import { FirmwareClient } from './lib/firmware-client.js'
@@ -26,6 +27,8 @@ export class AxctlClient {
   readonly vapix: VapixClient
   /** AXIS Object Analytics client */
   readonly aoa: AoaClient
+  /** AXIS Image Health Analytics client */
+  readonly aiha: AihaClient
   /** Pan-Tilt-Zoom control client */
   readonly ptz: PtzClient
   /** Edge recording management client */
@@ -44,6 +47,7 @@ export class AxctlClient {
   ) {
     this.vapix = new VapixClient(host, username, password)
     this.aoa = new AoaClient(host, username, password)
+    this.aiha = new AihaClient(host, username, password)
     this.ptz = new PtzClient(host, username, password)
     this.recording = new RecordingClient(host, username, password)
     this.firmware = new FirmwareClient(host, username, password)

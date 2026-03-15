@@ -35,15 +35,28 @@ export type {
 export { SCENARIO_TYPES, OBJECT_CLASSES, defaultTrigger, defaultFilters } from './lib/aoa-client.js'
 export type { ScenarioType as AoaScenarioType } from './lib/aoa-client.js'
 
+// --- Image Health Analytics (AIHA) ---
+export { AihaClient } from './lib/aiha-client.js'
+export type {
+  ImageHealthConfiguration,
+  ImageHealthDetectionConfig,
+  ImageHealthDetectionType,
+  ImageHealthStatus,
+  ImageHealthAlert,
+  ImageHealthEvent,
+} from './types/image-health.js'
+export { IMAGE_HEALTH_DEFAULTS, IMAGE_HEALTH_DETECTION_TYPES } from './types/image-health.js'
+export { WS_IMAGE_HEALTH_TOPICS, MQTT_IMAGE_HEALTH_TOPICS } from './types/image-health.js'
+
 // --- Discovery ---
 export { discoverMdns, discoverSsdp, discoverAll } from './lib/discovery.js'
 
 // --- Event Streaming ---
-export { streamEvents, aoaTopics } from './lib/event-stream.js'
+export { streamEvents, aoaTopics, imageHealthTopics } from './lib/event-stream.js'
 export type { AoaEvent, StreamOptions } from './lib/event-stream.js'
 
 // --- MQTT Streaming ---
-export { streamMqttEvents, mqttAoaTopics } from './lib/mqtt-stream.js'
+export { streamMqttEvents, mqttAoaTopics, mqttImageHealthTopics } from './lib/mqtt-stream.js'
 export type { MqttStreamOptions } from './lib/mqtt-stream.js'
 
 // --- Fleet Operations ---

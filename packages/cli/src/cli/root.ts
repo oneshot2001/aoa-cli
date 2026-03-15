@@ -2,7 +2,7 @@ import { Command } from 'commander'
 
 function generateBashCompletions(name: string): string {
   const commands = [
-    'auth', 'devices', 'discover', 'fleet', 'aoa', 'apps', 'events', 'profile',
+    'auth', 'devices', 'discover', 'fleet', 'aoa', 'apps', 'events', 'health', 'profile',
     'recording', 'ptz', 'firmware', 'system', 'rules', 'config', 'telemetry', 'interactive', 'completions', 'help'
   ]
   const authSubs = ['add', 'list', 'remove']
@@ -18,6 +18,7 @@ function generateBashCompletions(name: string): string {
   const systemSubs = ['info', 'time', 'network', 'users']
   const rulesSubs = ['list', 'enable', 'disable', 'remove', 'templates']
   const configSubs = ['get', 'set', 'unset', 'list', 'keys']
+  const healthSubs = ['status', 'show', 'set', 'restart', 'export', 'import', 'fleet', 'fleet-restart', 'fleet-import']
   const telemetrySubs = ['stats']
   const globalOpts = ['-f', '--format', '-v', '--verbose', '--debug', '--dry-run', '--no-telemetry', '-h', '--help', '-V', '--version']
   const formats = ['table', 'json', 'jsonl', 'csv', 'yaml']
@@ -44,6 +45,7 @@ _${name}() {
     system) COMPREPLY=($(compgen -W "${systemSubs.join(' ')}" -- "$cur")) ;;
     rules) COMPREPLY=($(compgen -W "${rulesSubs.join(' ')}" -- "$cur")) ;;
     config) COMPREPLY=($(compgen -W "${configSubs.join(' ')}" -- "$cur")) ;;
+    health) COMPREPLY=($(compgen -W "${healthSubs.join(' ')}" -- "$cur")) ;;
     telemetry) COMPREPLY=($(compgen -W "${telemetrySubs.join(' ')}" -- "$cur")) ;;
     *)
       if [[ "$cur" == -* ]]; then
@@ -82,6 +84,7 @@ _${name}() {
     'system:system and network info'
     'rules:action rule management'
     'config:manage axctl configuration'
+    'health:AXIS Image Health Analytics'
     'telemetry:local telemetry management'
     'interactive:start interactive REPL'
     'completions:generate shell completions'
@@ -122,6 +125,7 @@ _${name}() {
         system) _values 'subcommand' 'info[device info]' 'time[date/time/NTP]' 'network[network config]' 'users[user list]' ;;
         rules) _values 'subcommand' 'list[list rules]' 'enable[enable rule]' 'disable[disable rule]' 'remove[delete rule]' 'templates[action templates]' ;;
         config) _values 'subcommand' 'get[get value]' 'set[set value]' 'unset[remove value]' 'list[list all values]' 'keys[list known keys]' ;;
+        health) _values 'subcommand' 'status[running state and alerts]' 'show[detection config]' 'set[modify settings]' 'restart[force scene relearn]' 'export[export config]' 'import[import config]' 'fleet[fleet health dashboard]' 'fleet-restart[fleet relearn]' 'fleet-import[fleet config push]' ;;
         telemetry) _values 'subcommand' 'stats[collection statistics]' ;;
         completions) _values 'shell' 'bash' 'zsh' 'fish' ;;
       esac
@@ -162,6 +166,7 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_use_subcommand' -a system -d 'System info'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a rules -d 'Action rules'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a config -d 'Configuration'`,
+    `complete -c ${name} -n '__fish_use_subcommand' -a health -d 'Image Health Analytics'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a telemetry -d 'Telemetry management'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a interactive -d 'Interactive REPL'`,
     `complete -c ${name} -n '__fish_use_subcommand' -a completions -d 'Shell completions'`,
@@ -255,6 +260,17 @@ function generateFishCompletions(name: string): string {
     `complete -c ${name} -n '__fish_seen_subcommand_from config' -a unset -d 'Remove value'`,
     `complete -c ${name} -n '__fish_seen_subcommand_from config' -a list -d 'List all values'`,
     `complete -c ${name} -n '__fish_seen_subcommand_from config' -a keys -d 'List known keys'`,
+    ``,
+    `# health subcommands`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a status -d 'Running state and alerts'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a show -d 'Detection config'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a set -d 'Modify settings'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a restart -d 'Force scene relearn'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a export -d 'Export config'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a import -d 'Import config'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a fleet -d 'Fleet health dashboard'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a fleet-restart -d 'Fleet scene relearn'`,
+    `complete -c ${name} -n '__fish_seen_subcommand_from health' -a fleet-import -d 'Fleet config push'`,
     ``,
     `# telemetry subcommands`,
     `complete -c ${name} -n '__fish_seen_subcommand_from telemetry' -a stats -d 'Collection statistics'`,

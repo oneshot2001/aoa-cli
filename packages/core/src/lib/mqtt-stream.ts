@@ -84,6 +84,14 @@ export function mqttAoaTopics(scenarioIds: number[]): string[] {
   )
 }
 
+// Topic builder for Image Health Analytics events (MQTT)
+export function mqttImageHealthTopics(detections?: string[]): string[] {
+  if (!detections || detections.length === 0) {
+    return ['axis:CameraApplicationPlatform/ImageHealth/#']
+  }
+  return detections.map((d) => `axis:CameraApplicationPlatform/ImageHealth/${d.charAt(0).toUpperCase() + d.slice(1)}`)
+}
+
 // ---- Main stream function --------------------------------------------------
 
 export async function streamMqttEvents(

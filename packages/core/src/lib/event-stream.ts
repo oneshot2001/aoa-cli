@@ -131,3 +131,11 @@ export async function streamEvents(
 export function aoaTopics(scenarioIds: number[]): string[] {
   return scenarioIds.map((id) => `tnsaxis:CameraApplicationPlatform/ObjectAnalytics/Device1Scenario${id}`)
 }
+
+// Topic builder for Image Health Analytics events (WebSocket)
+export function imageHealthTopics(detections?: string[]): string[] {
+  if (!detections || detections.length === 0) {
+    return ['tns1:VideoAnalytics/tnsaxis:ImageHealth']
+  }
+  return detections.map((d) => `tns1:VideoAnalytics/tnsaxis:ImageHealth/${d.charAt(0).toUpperCase() + d.slice(1)}`)
+}
