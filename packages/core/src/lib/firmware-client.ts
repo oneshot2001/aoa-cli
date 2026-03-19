@@ -20,23 +20,49 @@ export class FirmwareClient {
   }
 
   async getStatus(): Promise<FirmwareStatus> {
-    const body = JSON.stringify({ apiVersion: '1.0', method: 'status' })
-    const url = `${this.baseUrl}/axis-cgi/firmwaremanagement.cgi`
-    const res = await digestFetch(url, 'POST', this.username, this.password, body)
-    if (!res.ok) throw new Error(`Firmware status error: ${res.status}`)
-    const json = (await res.json()) as {
-      data?: FirmwareStatus
+    // Firmware management API only returns activeFirmwareVersion — not model/serial/build.
+    // We supplement with basicdeviceinfo for the full picture.
+    const fwBody = JSON.stringify({ apiVersion: '1.0', method: 'status' })
+    const fwUrl = `${this.baseUrl}/axis-cgi/firmwaremanagement.cgi`
+    const fwRes = await digestFetch(fwUrl, 'POST', this.username, this.password, fwBody)
+    if (!fwRes.ok) throw new Error(`Firmware status error: ${fwRes.status}`)
+    const fwJson = (await fwRes.json()) as {
+      data?: {
+        activeFirmwareVersion?: string
+        firmwareVersion?: string
+        activeFirmwarePart?: string
+        [key: string]: unknown
+      }
       error?: { code: string; message: string }
     }
-    if (json.error) throw new Error(`Firmware error: ${json.error.message}`)
-    return (
-      json.data ?? {
-        firmwareVersion: 'unknown',
-        modelName: 'unknown',
-        buildDate: 'unknown',
-        serialNumber: 'unknown',
+    if (fwJson.error) throw new Error(`Firmware error: ${fwJson.error.message}`)
+
+    const fwVersion = fwJson.data?.activeFirmwareVersion
+      ?? fwJson.data?.firmwareVersion
+      ?? 'unknown'
+
+    // Get model, serial, build date from basicdeviceinfo
+    const infoBody = JSON.stringify({ apiVersion: '1.0', method: 'getAllProperties' })
+    const infoUrl = `${this.baseUrl}/axis-cgi/basicdeviceinfo.cgi`
+    let modelName = 'unknown'
+    let serialNumber = 'unknown'
+    let buildDate = 'unknown'
+    try {
+      const infoRes = await digestFetch(infoUrl, 'POST', this.username, this.password, infoBody)
+      if (infoRes.ok) {
+        const infoJson = (await infoRes.json()) as {
+          data?: { propertyList?: { ProdFullName?: string; ProdSerialNumber?: string; BuildDate?: string } }
+        }
+        const props = infoJson?.data?.propertyList as Record<string, string> | undefined
+        modelName = props?.ProdFullName ?? 'unknown'
+        serialNumber = props?.SerialNumber ?? props?.ProdSerialNumber ?? 'unknown'
+        buildDate = props?.BuildDate ?? 'unknown'
       }
-    )
+    } catch {
+      // Non-fatal — return what we have from firmware API
+    }
+
+    return { firmwareVersion: fwVersion, modelName, buildDate, serialNumber }
   }
 
   /** Returns the firmware file size in bytes (for dry-run display). */
