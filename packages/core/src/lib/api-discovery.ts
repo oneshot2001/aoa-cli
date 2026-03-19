@@ -69,15 +69,27 @@ function compareVersions(a: string, b: string): number {
   return 0
 }
 
+// Firmware-native APIs (registered in API Discovery Service)
 export const KNOWN_API_IDS = {
   BASIC_DEVICE_INFO: 'basic-device-info',
   FIRMWARE_MANAGER: 'fwmgr',
-  OBJECT_ANALYTICS: 'com.axis.analytics.objectanalytics',
   PTZ_CONTROL: 'ptz-control',
   STREAM_PROFILES: 'stream-profiles',
   MQTT_CLIENT: 'mqtt-client',
   GUARD_TOUR: 'guard-tour',
   API_DISCOVERY: 'api-discovery',
   PARAM_CGI: 'param-cgi',
-  APPLICATION_API: 'com.axis.applications',
+  APPLICATION_API: 'application',
+  RECORDING: 'recording',
+  DISK_MANAGEMENT: 'disk-management',
+  ANALYTICS_METADATA: 'analytics-metadata-config',
+  AUDIO_ANALYTICS: 'audio-analytics',
+  SIGNED_VIDEO: 'signed-video',
 } as const
+
+// ACAP-based APIs (NOT in API Discovery — use apps list to check availability)
+// These run as installed ACAPs with their own endpoints:
+//   - Object Analytics (AOA): /local/objectanalytics/control.cgi
+//   - Video Motion Detection (VMD): ACAP, not firmware API
+//   - Image Health Analytics: ACAP, not firmware API
+// To check ACAP availability, use: axctl apps list <ip>
